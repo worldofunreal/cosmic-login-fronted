@@ -7,6 +7,130 @@
   pointer-events: none;
 }
 
+.cosmic-logo-img{
+  --h: 275px;
+  --wr : calc(var(--h) / 383px);
+  width: calc(var(--h) * var(--wr));
+  height: var(--h);
+  left: calc(50vw - ((var(--h) / 2) var(--wr)));
+  margin-top: 100px;
+}
+
+.main-div{
+  width: 100vw;
+  height: 100vh;
+  text-align: center;
+  overflow: hidden;
+  background-image: url("./resources/fondo.jpg");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+}
+.cosmic-label-connect{
+  color: #FFFFFF;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  display: block;
+  margin: 15px 0px;
+}
+
+.btn-div{
+  width: 285px;
+  height: 69px;
+  /* margin-left: calc(50vw - 142.5px); */
+  position: relative;
+  background-image: url("./resources/Boton_Inactivo.svg");
+  background-size: cover;
+  background-repeat: no-repeat;
+  cursor: pointer;
+  display: inline-block;
+}
+.btn-div:hover{
+  background-image: url("./resources/activebtn.svg");
+}
+.icon-nfid-label{
+  color: #FFFFFF;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  display: inline-block;
+  font-size: 12px;
+  vertical-align: top;
+  width: 50px;
+}
+.icon-nfid-div{
+  --s: 80px;
+  width: var(--s);
+  margin-left: calc((var(--s) + 20px) * -1);
+  margin-right: 10px;
+  display: inline-block;
+  vertical-align: top;
+  height: 50px;
+  padding-top: 18px;
+}
+.icon-nfid{
+  --s: 30px;
+  width: var(--s);
+  display: inline-block;
+  vertical-align: super;
+}
+
+
+.button-account-icon{
+  display: inline-block;
+  width: 30px;
+  vertical-align: middle;
+  margin-right: 10px;
+}
+
+.btn-label{
+  height: 30px;
+  color: #FFFFFF;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 20px;
+  position: absolute;
+  width: 100%;
+  left: 0;
+  top: calc(34.5px - 15px);
+  vertical-align: middle;
+  user-select: none;
+  cursor: pointer;
+}
+
+.button-icon{
+  --h: 30px;
+  --w: 127px;
+  --wr: calc(var(--w) / var(--h));
+  height: var(--h);
+  position: absolute;
+  bottom: 5px;
+  left: calc(50% - (var(--w) / 2));
+}
+
+.bottom-div{
+  position: absolute;
+  width: 100%;
+  bottom: 20px;
+  text-align: center;
+}
+.bottom-wou-icon{
+  width: 50px;
+}
+.bottom-label{
+  color: #FFFFFF;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  display: block;
+  font-size: 12px;
+  margin-top: 10px;
+}
+
+@media(max-width: 480px){
+  .btn-div {
+    width: 190px;
+  }
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .App-logo {
     animation: App-logo-spin infinite 20s linear;
