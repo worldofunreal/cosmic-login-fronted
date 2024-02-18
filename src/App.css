@@ -1,3 +1,11 @@
+@import url('https://fonts.googleapis.com/css2?family=Ubuntu&display=swap');
+
+body, .cosmic-label-connect, .btn-label, .bottom-label {
+  font-family: 'Ubuntu', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 .App {
   text-align: center;
 }
@@ -13,7 +21,7 @@
   width: calc(var(--h) * var(--wr));
   height: var(--h);
   left: calc(50vw - ((var(--h) / 2) var(--wr)));
-  margin-top: 100px;
+  margin-top: 4vh;
 }
 
 .main-div{
@@ -28,34 +36,34 @@
 }
 .cosmic-label-connect{
   color: #FFFFFF;
-  font-family: 'Inter', sans-serif;
-  font-weight: 500;
+  font-weight: 600;
   display: block;
-  margin: 15px 0px;
+  margin: 16px 0px;
 }
 
 .inner-div {
   display: flex;
-  flex-direction: column; /* Stack children vertically */
-  align-items: center; /* Center-align items horizontally */
-  justify-content: center; /* Center-align items vertically for better spacing */
-  gap: 20px; /* Adds space between each button */
+  flex-direction: column;
+  align-items: center; 
+  justify-content: center; 
+  gap: 10px;
 }
 
 .btn-div{
-  width: 285px;
-  height: 48px;
+  width: 280px;
+  height: 64px;
   position: relative;
   background-image: url("./resources/Boton_Inactivo.svg");
-  background-size: cover;
-  background-repeat: no-repeat;
   cursor: pointer;
-  display: grid; /* Turn the button into a grid container */
-  grid-template-columns: 20% 80%; /* Two columns: 20% for logo, 80% for text */
-  align-items: center; /* Vertically center content within the grid cells */
+  display: grid;
+  grid-template-columns: 20% 80%;
+  align-items: center; 
+  border-radius: 8px;
 }
+
 .btn-div:hover{
   background-image: url("./resources/activebtn.svg");
+  transition: background-image 0.1s ease;
 }
 
 .button-account-icon{
@@ -66,13 +74,12 @@
 }
 
 .btn-label {
-  height: 30px;
   color: #FFFFFF;
-  font-family: 'Inter', sans-serif;
   font-weight: 500;
-  font-size: 14px;
+  font-size: 16px;
   position: absolute;
   width: 100%;
+  height: 50%;
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
@@ -92,22 +99,15 @@
   width: 50px;
 }
 .bottom-label{
-  color: #FFFFFF;
-  font-family: 'Inter', sans-serif;
-  font-weight: 300;
+  color: #aaaaaa;
   display: block;
   font-size: 10px;
-  margin-top: 10px;
+  margin-top: 2px;
 }
 
 @media(max-width: 480px){
   .btn-div {
-    width: 190px;
-    margin: 10px auto;
-  }
-
-  .btn-label {
-    font-size: 16px;
+    margin: 2px auto;
   }
 }
 
@@ -119,12 +119,12 @@
 
 .App-header {
   background-color: #282c34;
-  min-height: 100vh;
+
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
+  font-size: calc(8px + 1vmin);
   color: white;
 }
 
