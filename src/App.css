@@ -29,82 +29,57 @@
 .cosmic-label-connect{
   color: #FFFFFF;
   font-family: 'Inter', sans-serif;
-  font-weight: 600;
+  font-weight: 500;
   display: block;
   margin: 15px 0px;
+}
+
+.inner-div {
+  display: flex;
+  flex-direction: column; /* Stack children vertically */
+  align-items: center; /* Center-align items horizontally */
+  justify-content: center; /* Center-align items vertically for better spacing */
+  gap: 20px; /* Adds space between each button */
 }
 
 .btn-div{
   width: 285px;
   height: 69px;
-  /* margin-left: calc(50vw - 142.5px); */
   position: relative;
   background-image: url("./resources/Boton_Inactivo.svg");
   background-size: cover;
   background-repeat: no-repeat;
   cursor: pointer;
-  display: inline-block;
+  display: grid; /* Turn the button into a grid container */
+  grid-template-columns: 20% 80%; /* Two columns: 20% for logo, 80% for text */
+  align-items: center; /* Vertically center content within the grid cells */
 }
 .btn-div:hover{
   background-image: url("./resources/activebtn.svg");
 }
-.icon-nfid-label{
-  color: #FFFFFF;
-  font-family: 'Inter', sans-serif;
-  font-weight: 600;
-  display: inline-block;
-  font-size: 12px;
-  vertical-align: top;
-  width: 50px;
-}
-.icon-nfid-div{
-  --s: 80px;
-  width: var(--s);
-  margin-left: calc((var(--s) + 20px) * -1);
-  margin-right: 10px;
-  display: inline-block;
-  vertical-align: top;
-  height: 50px;
-  padding-top: 18px;
-}
-.icon-nfid{
-  --s: 30px;
-  width: var(--s);
-  display: inline-block;
-  vertical-align: super;
-}
-
 
 .button-account-icon{
   display: inline-block;
-  width: 30px;
+  width: 32px;
   vertical-align: middle;
-  margin-right: 10px;
+  margin-right: 12px;
 }
 
-.btn-label{
+.btn-label {
   height: 30px;
   color: #FFFFFF;
   font-family: 'Inter', sans-serif;
-  font-weight: 600;
-  font-size: 20px;
+  font-weight: 500;
+  font-size: 14px;
   position: absolute;
   width: 100%;
-  left: 0;
-  top: calc(34.5px - 15px);
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
   vertical-align: middle;
   user-select: none;
   cursor: pointer;
-}
-
-.button-icon{
-  --h: 30px;
-  --w: 127px;
-  --wr: calc(var(--w) / var(--h));
-  height: var(--h);
-  position: absolute;
-  bottom: 5px;
-  left: calc(50% - (var(--w) / 2));
+  margin-top: 4px;
 }
 
 .bottom-div{
@@ -119,15 +94,20 @@
 .bottom-label{
   color: #FFFFFF;
   font-family: 'Inter', sans-serif;
-  font-weight: 600;
+  font-weight: 300;
   display: block;
-  font-size: 12px;
+  font-size: 10px;
   margin-top: 10px;
 }
 
 @media(max-width: 480px){
   .btn-div {
     width: 190px;
+    margin: 10px auto;
+  }
+
+  .btn-label {
+    font-size: 16px;
   }
 }
 

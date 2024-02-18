@@ -5,13 +5,14 @@ import { MyStorage } from "./MyStorage";
 import cosmicLogo from './resources/Cosmicrafts_Logo.svg';
 import logo from './resources/NFID_logo.svg';
 import icpLogo from './resources/icp_logo.svg';
-import wouIcon from './resources/wou_logo.png';
+import wouIcon from './resources/wou_logo.svg';
 import './App.css';
 
 function App() {
   const [webSocket, setWebSocket] = useState(null);
   const [storage] = useState(new MyStorage());
   let identity = null;
+
   // State to track the selected authentication method
   const [selectedAuthMethod, setSelectedAuthMethod] = useState(null);
 
@@ -87,30 +88,34 @@ const GetIdentity = async (authMethod) => {
           onSuccess: () => {
             identity = authClient.getIdentity();
             console.log("Authenticated identity:", identity);
-                // Construct and log the message before sending
-                const message = JSON.stringify(identity);
-                console.log("Formatted message for NFID/Internet Identity:", message);
-                sendMessage(message);
+            const message = JSON.stringify(identity);
+            console.log("Formatted message for NFID/Internet Identity:", message);
+            sendMessage(message);
+            
+            if (window.parent != null && document.referrer !== '' && document.referrer != null) {
+              window.parent.postMessage(message, document.referrer);
+            } else {
+              window.close();
+            }
             resolve();
           },
           onError: reject,
         });
       });
     }
-
+    
     console.log("Authenticated identity:", identity);
     sendMessage(JSON.stringify(identity));
 
     if (window.parent != null && document.referrer !== '' && document.referrer != null) {
       window.parent.postMessage(JSON.stringify(identity), document.referrer);
-      return; // Ensure we exit the function here after sending the message
+      return;
     }
-
-  } catch (e) {
-    console.error("Authentication error:", e);
-    toggleElements(true, true); // Show error state in UI
-  }
-};
+      } catch (e) {
+        console.error("Authentication error:", e);
+        toggleElements(true, true); // Show error state in UI
+      }
+    };
 
   return (
     <div className='main-div'>
