@@ -1,47 +1,75 @@
 import React, { useEffect, useState } from "react";
 import { AuthClient } from "@dfinity/auth-client";
-import { HttpAgent } from "@dfinity/agent";
 import { MyStorage } from "./MyStorage";
 import cosmicLogo from './resources/Cosmicrafts_Logo.svg';
 import logo from './resources/NFID_logo.svg';
 import icpLogo from './resources/icp_logo.svg';
+import astroXLogo from './resources/me_logo.svg';
 import wouIcon from './resources/wou_logo.svg';
 import './App.css';
 
 function App() {
   const [webSocket, setWebSocket] = useState(null);
   const [storage] = useState(new MyStorage());
-  let identity = null;
-
-  // State to track the selected authentication method
   const [selectedAuthMethod, setSelectedAuthMethod] = useState(null);
-
 
   useEffect(() => {
     const ws = new WebSocket('ws://localhost:8080/Data');
     ws.onopen = () => console.log('WebSocket connection established.');
     setWebSocket(ws);
-
-    return () => ws.close(); // Clean up on component unmount
+    return () => ws.close();
   }, []);
 
+  useEffect(() => {
+    if (webSocket) {
+      webSocket.onopen = () => console.log('WebSocket connection established.');
+      return () => webSocket.close();
+    }
+  }, [webSocket]);
 
-  // Handler for NFID button click
-  const handleNFIDClick = async () => {
-    setSelectedAuthMethod("NFID");
-    await GetIdentity("NFID");
+  const handleAuthClick = async (authMethod) => {
+    setSelectedAuthMethod(authMethod);
+    await GetIdentity(authMethod);
   };
 
-  // Handler for Internet Identity button click
-  const handleInternetIdentityClick = async () => {
-    setSelectedAuthMethod("InternetIdentity");
-    await GetIdentity("InternetIdentity");
+  const sendMessage = (message) => {
+    console.log("Sending message to Unity:", message);
+    if (webSocket.readyState === WebSocket.OPEN) {
+      webSocket.send(message);
+    } else {
+      console.error("WebSocket connection is not open.");
+    }
   };
 
-  // Handler for Plug button click - Correctly defined now
-  const handlePlugClick = async () => {
-    setSelectedAuthMethod("Plug");
-    await GetIdentity("Plug");
+  const GetIdentity = async (authMethod) => {
+    try {
+      const identityProviderUrls = {
+        NFID: `https://nfid.one/authenticate/?applicationName=COSMICRAFTS&applicationLogo=https://cosmicrafts.com/wp-content/uploads/2023/09/cosmisrafts-242x300.png#authorize`,
+        InternetIdentity: `https://identity.ic0.app`,
+        AstroX: `https://63k2f-nyaaa-aaaah-aakla-cai.raw.ic0.app/#authorize`
+      };
+
+      if (!identity) {
+        const authClient = await AuthClient.create({ storage, keyType: 'Ed25519' });
+        await authClient.login({
+          identityProvider: identityProviderUrls[authMethod],
+          windowOpenerFeatures: `left=${window.screen.width / 2 - 525 / 2}, top=${window.screen.height / 2 - 705 / 2}, toolbar=0, location=0, menubar=0, width=525, height=705`,
+          onSuccess: () => {
+            identity = authClient.getIdentity();
+            console.log("Authenticated identity:", identity);
+            sendMessage(JSON.stringify(identity));
+            window.close();
+          },
+          onError: (e) => {
+            console.error("Authentication error:", e);
+            toggleElements(true, true);
+          }
+        });
+      }
+    } catch (e) {
+      console.error("Authentication error:", e);
+      toggleElements(true, true);
+    }
   };
 
   const toggleElements = (isDisabled, isHidden) => {
@@ -50,92 +78,23 @@ function App() {
     click.hidden = isHidden;
   };
 
-
-  const sendMessage = (message) => {
-      console.log("Sending message to Unity:", message);
-      webSocket.send(message);
-  }
-
-  const autologin = async () => {
-    toggleElements(true, true);
-      await GetIdentity();
-      toggleElements(false, false);
-  };
-
-const GetIdentity = async (authMethod) => {
-  try {
-    let identityProviderUrl;
-    const APPLICATION_NAME = "COSMICRAFTS";
-    const APPLICATION_LOGO_URL = "https://cosmicrafts.com/wp-content/uploads/2023/09/cosmisrafts-242x300.png";
-    const authClient = await AuthClient.create({
-      storage: storage,
-      keyType: 'Ed25519',
-    });
-
-    // Handling NFID and Internet Identity
-    if (authMethod === "NFID") {
-      identityProviderUrl = "https://nfid.one/authenticate/?applicationName=" + APPLICATION_NAME + "&applicationLogo=" + APPLICATION_LOGO_URL + "#authorize";
-    } else if (authMethod === "InternetIdentity") {
-      identityProviderUrl = "https://identity.ic0.app"; // Internet Identity provider URL
-    }
-
-    if (identity == null) {
-      await new Promise((resolve, reject) => {
-        authClient.login({
-          identityProvider: identityProviderUrl,
-          windowOpenerFeatures: `left=${window.screen.width / 2 - 525 / 2}, top=${window.screen.height / 2 - 705 / 2}, toolbar=0, location=0, menubar=0, width=525, height=705`,
-          
-          onSuccess: () => {
-            identity = authClient.getIdentity();
-            console.log("Authenticated identity:", identity);
-            const message = JSON.stringify(identity);
-            console.log("Formatted message for NFID/Internet Identity:", message);
-            sendMessage(message);
-            
-            if (window.parent != null && document.referrer !== '' && document.referrer != null) {
-              window.parent.postMessage(message, document.referrer);
-            } else {
-              window.close();
-            }
-            resolve();
-          },
-          onError: reject,
-        });
-      });
-    }
-    
-    console.log("Authenticated identity:", identity);
-    sendMessage(JSON.stringify(identity));
-
-    if (window.parent != null && document.referrer !== '' && document.referrer != null) {
-      window.parent.postMessage(JSON.stringify(identity), document.referrer);
-      return;
-    }
-      } catch (e) {
-        console.error("Authentication error:", e);
-        toggleElements(true, true); // Show error state in UI
-      }
-    };
-
   return (
     <div className='main-div'>
       <img src={cosmicLogo} className="cosmic-logo-img" alt="Cosmicrafts Logo"/>
-      <label className="cosmic-label-connect">
-        Connect with:
-      </label>
+      <label className="cosmic-label-connect">Connect with:</label>
       <div className="inner-div">
-        <div className="btn-div" onClick={handleNFIDClick}>
-          <label className="btn-label">
-            <img src={logo} className="button-account-icon" alt="NFID"/>
-            Login with NFID
-          </label>
-        </div>
-        <div className="btn-div" onClick={handleInternetIdentityClick}>
-          <label className="btn-label">
-            <img src={icpLogo} className="button-account-icon" alt="Internet Identity"/>
-            Login with Internet Identity
-          </label>
-        </div>
+        {[
+          { logo: logo, text: "NFID", onClick: () => handleAuthClick("NFID") },
+          { logo: icpLogo, text: "Internet Identity", onClick: () => handleAuthClick("InternetIdentity") },
+          { logo: astroXLogo, text: "Astro X", onClick: () => handleAuthClick("AstroX") }
+        ].map((item, index) => (
+          <div className="btn-div" key={index} onClick={item.onClick}>
+            <label className="btn-label">
+              <img src={item.logo} className="button-account-icon" alt={item.text}/>
+              Login with {item.text}
+            </label>
+          </div>
+        ))}
         <div className="bottom-div">
           <img src={wouIcon} alt="wou-icon" className="bottom-wou-icon" />
           <label className="bottom-label">&copy;&nbsp;2023 World of Unreal<br />All trademarks referenced herein are the properties of their respective owners.</label>
@@ -144,5 +103,7 @@ const GetIdentity = async (authMethod) => {
     </div>
   );
 }
+
+let identity = null;
 
 export default App;
