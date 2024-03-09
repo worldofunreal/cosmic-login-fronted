@@ -84,7 +84,6 @@ body, .cosmic-label-connect, .btn-label, .bottom-label {
   top: 50%;
   transform: translate(-50%, -50%);
   vertical-align: middle;
-  user-select: none;
   cursor: pointer;
   margin-top: 4px;
 }
