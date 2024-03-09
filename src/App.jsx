@@ -11,76 +11,48 @@ import { useAuth0 } from "@auth0/auth0-react";
 import nacl from 'tweetnacl';
 import { encode as base64Encode, decode as base64Decode } from "base64-arraybuffer";
 
+
 function App() {
   const [webSocket, setWebSocket] = useState(null);
   const [storage] = useState(new MyStorage());
   const [selectedAuthMethod, setSelectedAuthMethod] = useState(null);
 
-  const { loginWithRedirect, logout, isAuthenticated, getAccessTokenSilently } = useAuth0();
+  const { loginWithRedirect, isAuthenticated, user } = useAuth0();
 
-  const generateKeyPairNaCl = () => {
-    const keyPair = nacl.sign.keyPair();
+
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      // Assuming user.sub exists and is populated correctly by Auth0 after authentication
+      generateKeysFromSub(user.sub).then(({ publicKeyBase64, privateKeyBase64 }) => {
+        sendLoginDataToUnity(publicKeyBase64, privateKeyBase64);
+      }).catch(error => console.error("Error generating keys:", error));
+    }
+  }, [isAuthenticated, user]);
+
+  const generateKeysFromSub = async (sub) => {
+    const encoder = new TextEncoder();
+    const encodedSub = encoder.encode(sub);
+    const hashBuffer = await window.crypto.subtle.digest('SHA-256', encodedSub);
+    const seed = new Uint8Array(hashBuffer.slice(0, 32));
+    const keyPair = nacl.sign.keyPair.fromSeed(seed);
     const publicKeyBase64 = base64Encode(keyPair.publicKey);
     const privateKeyBase64 = base64Encode(keyPair.secretKey);
-    console.log(`Generated Keys - PublicKey: ${publicKeyBase64}, PrivateKey: ${privateKeyBase64}`);
     return { publicKeyBase64, privateKeyBase64 };
   };
-  
 
-  const handleAuth0Login = async () => {
-    await loginWithRedirect().then(() => {
-      if (isAuthenticated) {
-        // Once authenticated, generate keys and send them to Unity
-        const { publicKey, privateKey } = generateKeyPairNaCl();
-        
-        sendLoginDataToUnity(publicKey, privateKey);
-      }
-    }).catch(error => console.error("Authentication error:", error));
-  };
-
-  const { publicKey, privateKey } = generateKeyPairNaCl();
-
-  // Function to send login data to Unity
-  const sendLoginDataToUnity = async () => {
-  try {
-    const { publicKeyBase64, privateKeyBase64 } = generateKeyPairNaCl();
-    if (!publicKeyBase64 || !privateKeyBase64) {
-      console.error("Key generation failed.");
-      return;
-    }
-
+  const sendLoginDataToUnity = (publicKeyBase64, privateKeyBase64) => {
     const message = {
       type: "Ed25519Identity",
       publicKey: publicKeyBase64,
       privateKey: privateKeyBase64,
     };
-
-    console.log("Sending message to Unity:", message);
-    if (webSocket.readyState === WebSocket.OPEN) {
+    if (webSocket && webSocket.readyState === WebSocket.OPEN) {
       webSocket.send(JSON.stringify(message));
     } else {
       console.error("WebSocket connection is not open.");
     }
-  } catch (error) {
-    console.error("Error sending login data:", error);
-  }
-};
-
-
-
-  // Hashing function - Ideally the same method as in Unity
-  const hashSubDirectly = async (sub) => {
-    const encoder = new TextEncoder();
-    const encodedSub = encoder.encode(sub);
-    const hashBuffer = await window.crypto.subtle.digest('SHA-256', encodedSub);
-    return hashBuffer;
-  }
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      sendLoginDataToUnity(); 
-    }
-  }, [isAuthenticated]);
+  };
 
   useEffect(() => {
     const ws = new WebSocket('ws://localhost:8080/Data');
@@ -156,7 +128,7 @@ function App() {
           { logo: logo, text: "NFID", onClick: () => handleAuthClick("NFID") },
           { logo: icpLogo, text: "Internet Identity", onClick: () => handleAuthClick("InternetIdentity") },
           { logo: astroXLogo, text: "Astro X", onClick: () => handleAuthClick("AstroX") },
-          { logo: icpLogo, text: "Auth0", onClick: handleAuth0Login }
+          { logo: icpLogo, text: "Auth0", onClick: loginWithRedirect }
         ].map((item, index) => (
           <div className="btn-div" key={index} onClick={item.onClick}>
             <label className="btn-label">
