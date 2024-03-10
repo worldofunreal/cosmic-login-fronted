@@ -1,7 +1,7 @@
 import React from 'react';
-import { createRoot } from 'react-dom/client'; // Ensure you're importing createRoot for React 18
-import { BrowserRouter } from 'react-router-dom'; // Make sure to import BrowserRouter
-import { Auth0Provider } from '@auth0/auth0-react'; // Import the Auth0Provider component
+import { createRoot } from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
+import { Auth0Provider } from '@auth0/auth0-react';
 import App from './App';
 import './index.css';
 
