@@ -24,11 +24,28 @@ function App() {
   const [webSocket, setWebSocket] = useState(null);
   const [storage] = useState(new MyStorage());
   const [selectedAuthMethod, setSelectedAuthMethod] = useState(null);
-  const { loginWithRedirect, isAuthenticated, user } = useAuth0();
-  const clientId = "122454957472-hcrthge23qj5phonfc88mncbri4akg63.apps.googleusercontent.com";
-  let generatedKeys = null;
-  const [keyUpdateTrigger, setKeyUpdateTrigger] = useState(0); 
+  const { loginWithRedirect, isAuthenticated, user, logout } = useAuth0();
+  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+  const [googleSub, setGoogleSub] = useState(null);
 
+  const storeGoogleSub = (sub) => {
+    setGoogleSub(sub); // Use the setter function to update the state
+  };
+  
+  const isGoogleAuth = () => {
+    return googleSub !== null;
+  };
+
+  useEffect(() => {
+    if (isGoogleAuth()) { // Check if Google sign-in is active
+      generateKeysFromSub(googleSub) // Use the stored sub
+        .then(({ publicKeyBase64, privateKeyBase64 }) => {
+          sendLoginDataToUnity(publicKeyBase64, privateKeyBase64);
+        })
+        .catch(error => console.error("Error generating keys:", error));
+    }
+  }, [isGoogleAuth]); // Note the simplified dependency 
+  
 
   useEffect(() => {
     // Function to load the Google Identity Services library script dynamically
@@ -55,52 +72,30 @@ function App() {
       );
       window.google.accounts.id.prompt(); // Display the One Tap sign-in prompt
     };
-
+    
     // Load the Google Identity Services library
     loadGoogleIdentityServices();
   }, []);
 
-  useEffect(() => {
-    if (generatedKeys) {
-        sendLoginDataToUnity(generatedKeys.publicKeyBase64, generatedKeys.privateKeyBase64);
-        generatedKeys = null; // Reset after sending
-    }
-}, [generatedKeys]); 
-
-  function generateAndSendKeys(userSub, onSuccess = null) {
-    generateKeysFromSub(userSub).then(({ publicKeyBase64, privateKeyBase64 }) => {
-      const keys = { publicKeyBase64, privateKeyBase64 };
+  function handleCredentialResponse(response) {
+    // Log the entire response for debugging purposes
+    console.log('Credential Response:', response);
   
-      // Call the onSuccess callback, if provided
-      if (onSuccess) {
-        onSuccess(keys);
-      }
-    }).catch(error => {
-      console.error("Error generating keys:", error);
-      if (onSuccess) {
-        onSuccess(null); // Pass null in case of an error 
-      }
-    }); 
+    const decodedIdToken = response.credential.split('.')[1];
+    const payload = JSON.parse(atob(decodedIdToken));
+  
+    console.log('Decoded ID Token Payload:', payload);
+  
+    const sub = payload.sub; // Extract the 'sub'
     
+    // Log the extracted 'sub'
+    console.log('Extracted sub:', sub);
+  
+    // Store the 'sub' in a global method (see Step 2)
+    storeGoogleSub(sub);
   }
   
-  const handleCredentialResponse = async (response) => {
-    const decodedToken = jwtDecode(response.credential);
-    const userSub = decodedToken.sub;
-
-    console.log("Encoded JWT ID token: ", response.credential);
-    console.log("User ID: ", userSub);
-
-    generateKeysFromSub(userSub).then(({ publicKeyBase64, privateKeyBase64 }) => {
-      // Update the AuthContext state
-      setAuthInfo({ isAuthenticated: true, user: userSub, keys: { publicKeyBase64, privateKeyBase64 } });
-
-      // Now you can also send keys to WebSocket from here if you want
-      sendLoginDataToUnity(publicKeyBase64, privateKeyBase64);
-    }).catch(error => console.error("Error generating keys:", error));
-  };
-
-
+  
   const loginWithMetaMask = async () => {
     try {
       console.log('Attempting to log in with MetaMask...');
@@ -127,7 +122,6 @@ function App() {
     }
   };
 
-
   const generateKeysFromSignature = async (signature) => {
     const encoder = new TextEncoder();
     const encodedSignature = encoder.encode(signature);
@@ -141,14 +135,18 @@ function App() {
 
   useEffect(() => {
     if (isAuthenticated && user) {
-      // Assuming user.sub exists and is populated correctly by Auth0 after authentication
-      generateKeysFromSub(user.sub).then(({ publicKeyBase64, privateKeyBase64 }) => {
-        sendLoginDataToUnity(publicKeyBase64, privateKeyBase64);
-      }).catch(error => console.error("Error generating keys:", error));
+      generateKeysFromSub(user.sub)
+        .then(({ publicKeyBase64, privateKeyBase64 }) => {
+          sendLoginDataToUnity(publicKeyBase64, privateKeyBase64);
+    
+          logout(); 
+        })
+        .catch(error => console.error("Error generating keys:", error));
     }
   }, [isAuthenticated, user]);
 
   const generateKeysFromSub = async (sub) => {
+    console.log("generateKeysFromSub called with sub:", sub);
     const encoder = new TextEncoder();
     const encodedSub = encoder.encode(sub);
     const hashBuffer = await window.crypto.subtle.digest('SHA-256', encodedSub);

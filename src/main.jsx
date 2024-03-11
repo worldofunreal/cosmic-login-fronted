@@ -5,12 +5,15 @@ import { Auth0Provider } from '@auth0/auth0-react';
 import App from './App';
 import './index.css';
 
+const auth0Domain = import.meta.env.VITE_AUTH0_DOMAIN;
+const auth0ClientId = import.meta.env.VITE_AUTH0_CLIENT_ID
+
 const root = createRoot(document.getElementById('root'));
 root.render(
   <BrowserRouter>
     <Auth0Provider
-      domain="worldofunreal.us.auth0.com"
-      clientId="MbSEvChfyejH8nkY9q8i8rTemyJWtnv3"
+      domain={auth0Domain}
+      clientId={auth0ClientId}
       authorizationParams={{ redirect_uri: window.location.origin }}
       onRedirectCallback={appState => {
         window.history.replaceState({}, document.title, appState?.returnTo || window.location.pathname);
