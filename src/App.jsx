@@ -33,7 +33,7 @@ function App() {
   };
   const handleCountdownComplete = () => {
     console.log("Countdown completed. Closing window...");
-    // window.close();
+    window.close();
   };
   
   const storeGoogleSub = (sub) => {
@@ -229,7 +229,7 @@ function App() {
 
       <img src={cosmicLogo} className="cosmic-logo-img" alt="Cosmicrafts Logo"/>
       <label className="cosmic-label-connect">Connect with:</label>
-      
+      <button onClick={handleAfterLogin}>Execute Functions</button>
       {showAfterSession && <AfterSession onCountdownComplete={handleCountdownComplete} />}
       <div className="inner-div"><div id="buttonDiv"></div>
       {[

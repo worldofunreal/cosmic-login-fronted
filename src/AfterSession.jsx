@@ -15,17 +15,13 @@ function AfterSession({ onCountdownComplete }) {
 
   return (
     <div className="after-session-container">
-    <div>
-      {countdown > 0 ? (
-        <h1>This page will self-destruct in {countdown}...</h1>
-      ) : (
-        <div>
-          <h1>Successfully logged in!</h1>
-          <p>Go wreck some spaceships, commander!</p>
-        </div>
-      )}
+      <div className={countdown <= 0 ? "message active" : "message"}>
+        <h1>This page will self-destruct in...</h1>
+        <div className="countdown-number">{countdown}</div>
+        <h2>Successfully logged in!</h2>
+        <p>Go wreck some spaceships, commander!</p>
       </div>
-      </div>
+    </div>
   );
 }
 

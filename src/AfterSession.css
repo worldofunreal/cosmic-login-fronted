@@ -3,27 +3,40 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 60%;
-      max-width: 400px;
-      padding: 20px;
-      background: linear-gradient(to bottom, rgba(31, 42, 73, 0.9), rgba(19, 26, 44, 0.9));
-      border: 2px solid #007bff;
+      width: 70%;
+      max-width: 500px;
+      padding: 40px;
+      background: linear-gradient(
+            to bottom, 
+            rgba(28, 34, 48, 0.25), 
+            rgba(18, 21, 30, 0.95)
+          ),
+          url('./resources/fondo.jpg'); 
+        background-size: cover;
+        background-position: center;
+      border: 1px solid #0091ff;
       border-radius: 10px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 8px 6px rgba(0, 0, 0, 0.26);
       text-align: center;
       animation: popIn 0.5s ease-out forwards;
       z-index: 100;
     }
     
-    @keyframes popIn {
-      0% {
-        transform: translate(-50%, -50%) scale(0.5);
-        opacity: 0;
-      }
-      100% {
-        transform: translate(-50%, -50%) scale(1);
-        opacity: 1;
-      }
+    h1 {
+      margin: 20px 0;
+      font-size: 2rem;
+      color: white;
+    }
+
+    h2 {
+      margin: 24px 0;
+      font-size: 1.6rem;
+      color: rgb(128, 211, 51);
+    }
+    
+    p {
+      font-size: 1rem;
+      color: rgb(145, 145, 145);
     }
     
     .countdown {
@@ -36,3 +49,34 @@
       font-size: 1.2rem;
     }
     
+    .login-message {
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+    
+    .login-message.visible {
+      opacity: 1;
+    }
+
+    .countdown-number {
+      font-size: 6rem;
+      color: rgb(0, 149, 255);
+      animation: countdownAnimation 1s infinite;
+    }
+    
+    @keyframes countdownAnimation {
+      0% { transform: scale(0); opacity: 0.1; }
+      50% { transform: scale(1.5); opacity: 1; }
+      100% { transform: scale(0); opacity: 0.1; }
+    }
+    
+    @keyframes popIn {
+      0% {
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 0;
+      }
+      100% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+      }
+    }
