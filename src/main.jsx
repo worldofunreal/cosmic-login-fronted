@@ -17,9 +17,7 @@ root.render(
       authorizationParams={{ redirect_uri: window.location.origin }}
       onRedirectCallback={appState => {
         window.history.replaceState({}, document.title, appState?.returnTo || window.location.pathname);
-      }}
-      onError={(error) => console.error('Auth0 Error:', error)}
-    >
+      }}onError={(error) => console.error('Auth0 Error:', error)}>
       <App />
     </Auth0Provider>
   </BrowserRouter>

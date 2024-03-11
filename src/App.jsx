@@ -1,24 +1,22 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
+import './AfterSession.css';
 import { AuthClient } from "@dfinity/auth-client";
 import { MyStorage } from "./MyStorage";
+import nacl from 'tweetnacl';
+import { encode as base64Encode} from "base64-arraybuffer";
+import { useAuth0 } from "@auth0/auth0-react";
+import MetaMaskService from "./Services/MetaMaskService";
+import PhantomService from './Services/PhantomService';
+import AfterSession from './AfterSession';
+
 import cosmicLogo from './resources/Cosmicrafts_Logo.svg';
 import logo from './resources/NFID_logo.svg';
 import icpLogo from './resources/icp_logo.svg';
-import astroXLogo from './resources/me_logo.svg';
 import wouIcon from './resources/wou_logo.svg';
 import metaMaskLogo from './resources/metaMask_icon.svg';
 import phantomLogo from './resources/Phantom_icon.svg';
 import wouidLogo from './resources/wouid_icon.svg';
-import * as jwtDecode from 'jwt-decode';
-import googleLogo from './resources/google_logo.svg';
-import { useAuth0 } from "@auth0/auth0-react";
-import MetaMaskService from "./Services/MetaMaskService";
-import PhantomService from './Services/PhantomService';
-import nacl from 'tweetnacl';
-import { encode as base64Encode, decode as base64Decode } from "base64-arraybuffer";
-import { useAuth } from './Services/AuthContext';
-
 
 function App() {
   const [webSocket, setWebSocket] = useState(null);
@@ -27,9 +25,19 @@ function App() {
   const { loginWithRedirect, isAuthenticated, user, logout } = useAuth0();
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
   const [googleSub, setGoogleSub] = useState(null);
+  const [showAfterSession, setShowAfterSession] = useState(false);
 
+
+  const handleAfterLogin = (response) => {
+    setShowAfterSession(true);
+  };
+  const handleCountdownComplete = () => {
+    console.log("Countdown completed. Closing window...");
+    // window.close();
+  };
+  
   const storeGoogleSub = (sub) => {
-    setGoogleSub(sub); // Use the setter function to update the state
+    setGoogleSub(sub);
   };
   
   const isGoogleAuth = () => {
@@ -37,30 +45,25 @@ function App() {
   };
 
   useEffect(() => {
-    if (isGoogleAuth()) { // Check if Google sign-in is active
-      generateKeysFromSub(googleSub) // Use the stored sub
+    if (isGoogleAuth()) {
+      generateKeysFromSub(googleSub)
         .then(({ publicKeyBase64, privateKeyBase64 }) => {
           sendLoginDataToUnity(publicKeyBase64, privateKeyBase64);
         })
-        .catch(error => console.error("Error generating keys:", error));
+        .catch(error => console.error("Error generating logging with Google:", error));
     }
-  }, [isGoogleAuth]); // Note the simplified dependency 
+  }, [isGoogleAuth]);
   
-
   useEffect(() => {
-    // Function to load the Google Identity Services library script dynamically
     const loadGoogleIdentityServices = () => {
       const script = document.createElement('script');
       script.src = "https://accounts.google.com/gsi/client";
       script.onload = initializeGoogleSignIn;
       script.onerror = () => {
-        // Retry after a delay
         setTimeout(loadGoogleIdentityServices, 1000);
       };
       document.body.appendChild(script);
     };
-
-    // Function to initialize Google Sign-In
     const initializeGoogleSignIn = () => {
       window.google.accounts.id.initialize({
         client_id: clientId,
@@ -68,33 +71,20 @@ function App() {
       });
       window.google.accounts.id.renderButton(
         document.getElementById("buttonDiv"),
-        { theme: "outline", size: "large" }  // Customization attributes
+        { theme: "filled_black", size: "large" }
       );
-      window.google.accounts.id.prompt(); // Display the One Tap sign-in prompt
+      window.google.accounts.id.prompt();
     };
-    
-    // Load the Google Identity Services library
     loadGoogleIdentityServices();
   }, []);
 
   function handleCredentialResponse(response) {
-    // Log the entire response for debugging purposes
-    console.log('Credential Response:', response);
-  
     const decodedIdToken = response.credential.split('.')[1];
     const payload = JSON.parse(atob(decodedIdToken));
-  
     console.log('Decoded ID Token Payload:', payload);
-  
-    const sub = payload.sub; // Extract the 'sub'
-    
-    // Log the extracted 'sub'
-    console.log('Extracted sub:', sub);
-  
-    // Store the 'sub' in a global method (see Step 2)
+    const sub = payload.sub;
     storeGoogleSub(sub);
   }
-  
   
   const loginWithMetaMask = async () => {
     try {
@@ -103,7 +93,6 @@ function App() {
       const signature = await MetaMaskService.signMessage(uniqueMessage);
       const { publicKeyBase64, privateKeyBase64 } = await generateKeysFromSignature(signature);
       sendLoginDataToUnity(publicKeyBase64, privateKeyBase64);
-      console.log('Login with MetaMask successful');
     } catch (error) {
       console.error("Error logging in with MetaMask:", error);
     }
@@ -114,7 +103,6 @@ function App() {
       const message = "Sign this message to log in with your Phantom Wallet";
       const signature = await PhantomService.signAndSend(message);
       const { publicKeyBase64, privateKeyBase64 } = await generateKeysFromSignature(signature);
-      // Assuming sendLoginDataToUnity function exists and works as before
       sendLoginDataToUnity(publicKeyBase64, privateKeyBase64);
       console.log('Login with Phantom successful');
     } catch (error) {
@@ -141,12 +129,11 @@ function App() {
     
           logout(); 
         })
-        .catch(error => console.error("Error generating keys:", error));
+        .catch(error => console.error("Error loggin with Auth0:", error));
     }
   }, [isAuthenticated, user]);
 
   const generateKeysFromSub = async (sub) => {
-    console.log("generateKeysFromSub called with sub:", sub);
     const encoder = new TextEncoder();
     const encodedSub = encoder.encode(sub);
     const hashBuffer = await window.crypto.subtle.digest('SHA-256', encodedSub);
@@ -165,11 +152,12 @@ function App() {
     };
     if (webSocket && webSocket.readyState === WebSocket.OPEN) {
       webSocket.send(JSON.stringify(message));
+      handleAfterLogin();
     } else {
       console.error("WebSocket connection is not open.");
     }
   };
-
+  
   useEffect(() => {
     const ws = new WebSocket('ws://localhost:8080/Data');
     ws.onopen = () => console.log('WebSocket connection established.');
@@ -202,8 +190,7 @@ function App() {
     try {
       const identityProviderUrls = {
         NFID: `https://nfid.one/authenticate/?applicationName=COSMICRAFTS&applicationLogo=https://cosmicrafts.com/wp-content/uploads/2023/09/cosmisrafts-242x300.png#authorize`,
-        InternetIdentity: `https://identity.ic0.app`,
-        AstroX: `https://63k2f-nyaaa-aaaah-aakla-cai.raw.ic0.app/#authorize`
+        InternetIdentity: `https://identity.ic0.app`
       };
 
       if (!identity) {
@@ -215,7 +202,7 @@ function App() {
             identity = authClient.getIdentity();
             console.log("Authenticated identity:", identity);
             sendMessage(JSON.stringify(identity));
-            window.close();
+            handleAfterLogin();
           },
           onError: (e) => {
             console.error("Authentication error:", e);
@@ -237,18 +224,20 @@ function App() {
 
   return (
     <div className='main-div'>
+
+       
+
       <img src={cosmicLogo} className="cosmic-logo-img" alt="Cosmicrafts Logo"/>
       <label className="cosmic-label-connect">Connect with:</label>
-      <div id="buttonDiv"></div>
-      <div className="inner-div">
-        {[
+      
+      {showAfterSession && <AfterSession onCountdownComplete={handleCountdownComplete} />}
+      <div className="inner-div"><div id="buttonDiv"></div>
+      {[
           { logo: logo, text: "NFID", onClick: () => handleAuthClick("NFID")},
           { logo: icpLogo, text: "Internet Identity", onClick: () => handleAuthClick("InternetIdentity")},
-          { logo: astroXLogo, text: "Astro X", onClick: () => handleAuthClick("AstroX") },
-          { logo: wouidLogo, text: "Web2", onClick: () => loginWithRedirect({ redirectUri: window.location.origin, connection: 'google-oauth2'})},
           { logo: metaMaskLogo, text: "MetaMask", onClick: loginWithMetaMask},
-          { logo: phantomLogo, text: "Phantom", onClick: loginWithPhantom}
-          
+          { logo: phantomLogo, text: "Phantom", onClick: loginWithPhantom },
+          { logo: wouidLogo, text: "Other Options", onClick: () => loginWithRedirect({ redirectUri: window.location.origin })} 
         ].map((item, index) => (
           <div className="btn-div" key={index} onClick={item.onClick}>
             <label className="btn-label">
@@ -262,7 +251,7 @@ function App() {
           <label className="bottom-label">&copy;&nbsp;2023 World of Unreal<br />All trademarks referenced herein are the properties of their respective owners.</label>
         </div>
       </div>
-    </div>
+      </div>
   );
 }
 
