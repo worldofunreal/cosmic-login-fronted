@@ -126,12 +126,14 @@ function App() {
       generateKeysFromSub(user.sub)
         .then(({ publicKeyBase64, privateKeyBase64 }) => {
           sendLoginDataToUnity(publicKeyBase64, privateKeyBase64);
-    
-          logout(); 
+          setTimeout(() => {
+            logout();
+            
+          }, 5000);
         })
-        .catch(error => console.error("Error loggin with Auth0:", error));
+        .catch(error => console.error("Error logging with Auth0:", error));
     }
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, user, logout]);
 
   const generateKeysFromSub = async (sub) => {
     const encoder = new TextEncoder();
@@ -224,12 +226,8 @@ function App() {
 
   return (
     <div className='main-div'>
-
-       
-
       <img src={cosmicLogo} className="cosmic-logo-img" alt="Cosmicrafts Logo"/>
       <label className="cosmic-label-connect">Connect with:</label>
-      <button onClick={handleAfterLogin}>Execute Functions</button>
       {showAfterSession && <AfterSession onCountdownComplete={handleCountdownComplete} />}
       <div className="inner-div"><div id="buttonDiv"></div>
       {[
